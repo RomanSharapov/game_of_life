@@ -15,11 +15,98 @@
 # The next state is created by applying the above rules simultaneously to every cell in the current state, where births
 # and deaths occur simultaneously. Given the current state of the m x n grid board, return the next state.
 
+import curses
 
-def print_board(board: list[list[int]]) -> None:
+from curses import wrapper
+from time import sleep
+
+
+glider = [
+    [0,1,0],
+    [0,0,1],
+    [1,1,1],
+    [0,0,0],
+]
+
+bliper = [
+    [0,0,0],
+    [1,1,1],
+    [0,0,0],
+]
+
+glider_gun = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+    [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+    [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+]
+
+diehard = [
+    [0, 0, 0, 0, 0, 0, 1, 0],
+    [1, 1, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 1, 1, 1]
+]
+
+boat = [
+    [1, 1, 0],
+    [1, 0, 1],
+    [0, 1, 0]
+]
+
+r_pentomino = [
+    [0, 1, 1],
+    [1, 1, 0],
+    [0, 1, 0]
+]
+
+beacon = [
+    [0, 0, 1, 1],
+    [0, 0, 1, 1],
+    [1, 1, 0, 0],
+    [1, 1, 0, 0]
+]
+
+acorn = [
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [1, 1, 0, 0, 1, 1, 1]
+]
+
+spaceship = [
+    [0, 0, 1, 1, 0],
+    [1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 0],
+    [0, 1, 1, 0, 0]
+]
+
+block_switch_engine = [
+    [0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 1, 0, 1, 1],
+    [0, 0, 0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0],
+    [1, 0, 1, 0, 0, 0, 0, 0]
+]
+
+
+def print_board(stdscr, board: list[list[int]]) -> None:
     """The board pretty print"""
-    for _ in board:
-        print(_)
+    for r, row in enumerate(board):
+        for c, col in enumerate(row):
+            stdscr.addstr(r+1, c, str(col), curses.color_pair(col))
+            # stdscr.addch(r+1, c, curses.ACS_BOARD, curses.color_pair(col))
 
 
 def next_generation(board: list[list[int]]) -> list[list[int]]:
@@ -45,29 +132,28 @@ def next_generation(board: list[list[int]]) -> list[list[int]]:
     return next_gen
 
 
-def play_game_of_life(board, max_generations=10, current_generation=1):
-    print(f"generation {current_generation}")
-    print_board(board)
+def play_game_of_life(stdscr, board, max_generations=10, current_generation=1):
+    stdscr.erase()
+    stdscr.refresh()
+
+    stdscr.addstr(0, 0, f"Generation {current_generation}")
+    print_board(stdscr, board)
+    stdscr.refresh()
+    stdscr.getch()
     max_generations -= 1
     current_generation += 1
     if max_generations > 0:
-        play_game_of_life(next_generation(board), max_generations, current_generation)
-    else:
-        print("End of Life")
+        play_game_of_life(stdscr, next_generation(board), max_generations, current_generation)
+
+
+def main(stdscr):
+    curses.halfdelay(5)
+    curses.noecho()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+
+    play_game_of_life(stdscr, board=block_switch_engine, max_generations=20)
 
 
 if __name__ == "__main__":
-    glider = [
-        [0,1,0],
-        [0,0,1],
-        [1,1,1],
-        [0,0,0],
-    ]
-
-    bliper = [
-        [0,0,0],
-        [1,1,1],
-        [0,0,0],
-    ]
-
-    play_game_of_life(board=bliper, max_generations=2)
+    wrapper(main)
